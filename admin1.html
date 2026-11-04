@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — Result Publication System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#128A3E;
+    --green-dark:#0D6E30;
+    --green-pale:#EAF6EE;
+    --bg:#F2F4F3;
+    --card:#FFFFFF;
+    --border:#DFE3E0;
+    --text:#1B2B22;
+    --muted:#5B6B60;
+    --danger:#C0392B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter','Hind Siliguri',sans-serif;
+    min-height:100vh;
+  }
+  .site-header{
+    background:var(--green);
+    color:#fff;
+    padding:16px 20px;
+  }
+  .site-header-inner{
+    max-width:760px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .site-header h1{margin:0; font-size:18px;}
+  .site-header a{color:#fff; font-size:13px; opacity:.9; text-decoration:none; border:1px solid rgba(255,255,255,.5); padding:6px 12px; border-radius:6px;}
+  .site-header a:hover{background:rgba(255,255,255,.12);}
+
+  main{max-width:760px; margin:0 auto; padding:28px 20px 60px;}
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:24px;
+    margin-bottom:22px;
+    box-shadow:0 2px 8px rgba(0,0,0,.04);
+  }
+  .panel h2{
+    font-size:16px;
+    margin:0 0 4px;
+    color:var(--green-dark);
+  }
+  .panel .sub{
+    font-size:13px;
+    color:var(--muted);
+    margin:0 0 18px;
+    line-height:1.6;
+  }
+  .panel .sub code{
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:1px 5px;
+    font-size:12px;
+  }
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+  .field input[type="text"]{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    font-size:14px;
+    font-family:'Hind Siliguri',sans-serif;
+  }
+  .field input[type="file"]{font-size:13px;}
+  .field input:focus{outline:none; border-color:var(--green);}
+  .fields-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0 14px;
+  }
+  @media (max-width:560px){
+    .fields-grid{grid-template-columns:1fr;}
+  }
+  .logo-preview{
+    width:60px; height:60px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    object-fit:cover;
+    display:none;
+    margin-bottom:10px;
+  }
+  .btn{
+    border:none;
+    padding:11px 22px;
+    border-radius:7px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:'Hind Siliguri',sans-serif;
+  }
+  .btn-primary{background:var(--green); color:#fff;}
+  .btn-primary:hover{background:var(--green-dark);}
+  .status-msg{
+    margin-top:12px;
+    font-size:13px;
+    min-height:16px;
+  }
+  .status-msg.ok{color:var(--green-dark);}
+  .status-msg.err{color:var(--danger);}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <h1>অ্যাডমিন প্যানেল</h1>
+    <a href="index.html">← মূল সাইটে ফিরে যান</a>
+  </div>
+</header>
+
+<main>
+
+  <div class="panel">
+    <h2>ওয়েবসাইট সেটিংস</h2>
+    <p class="sub">সাইটের নাম, সাব-টাইটেল ও লোগো এখান থেকে পরিবর্তন করুন।</p>
+    <img class="logo-preview" id="logoPreview">
+    <div class="field">
+      <label>লোগো</label>
+      <input type="file" id="logoInput" accept="image/*">
+    </div>
+    <div class="field">
+      <label>সাইটের প্রধান শিরোনাম</label>
+      <input type="text" id="titleInput" placeholder="WEB BASED RESULT PUBLICATION SYSTEM FOR EDUCATION BOARDS">
+    </div>
+    <div class="field">
+      <label>সাব-টাইটেল</label>
+      <input type="text" id="subtitleInput" placeholder="JSC/JDC/SSC/DAKHIL/HSC/ALIM AND EQUIVALENT EXAMINATION">
+    </div>
+    <button class="btn btn-primary" id="saveSettingsBtn">সেটিংস সেভ করুন</button>
+    <div class="status-msg" id="settingsMsg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>সাধারণ তথ্য (সব রেজাল্টে একই)</h2>
+    <p class="sub">
+      যে তথ্যগুলো সব শিক্ষার্থীর জন্য একই (যেমন Department, Season), সেগুলো এখানে একবার লিখে দিন — CSV-তে আলাদা করে দিতে হবে না।
+      CSV-তে কোনো শিক্ষার্থীর সেই ঘর <b>ফাঁকা</b> থাকলে এখানকার মান ব্যবহার হবে। CSV-তে মান থাকলে CSV-র মানই প্রাধান্য পাবে।
+      ফাঁকা রাখলে কিছু যুক্ত হবে না।
+    </p>
+    <div class="fields-grid">
+      <div class="field"><label>Class</label><input type="text" id="cClass" placeholder="যেমন: SSC"></div>
+      <div class="field"><label>Group</label><input type="text" id="cGroup" placeholder="যেমন: SCIENCE"></div>
+      <div class="field"><label>Department</label><input type="text" id="cDepartment" placeholder="যেমন: General"></div>
+      <div class="field"><label>Season</label><input type="text" id="cSeason" placeholder="যেমন: 2025"></div>
+      <div class="field"><label>Shift</label><input type="text" id="cShift" placeholder="যেমন: Day"></div>
+      <div class="field"><label>Board</label><input type="text" id="cBoard" placeholder="যেমন: DHAKA"></div>
+    </div>
+    <button class="btn btn-primary" id="saveCommonBtn">সেভ করুন</button>
+    <div class="status-msg" id="commonMsg"></div>
+  </div>
+
+</main>
+
+<script>
+(function(){
+  const LS_SETTINGS = 'erp_settings_v1';
+
+  const COMMON_FIELDS = {
+    class:'cClass', group:'cGroup', department:'cDepartment',
+    season:'cSeason', shift:'cShift', board:'cBoard'
+  };
+
+  const logoPreview = document.getElementById('logoPreview');
+  const logoInput = document.getElementById('logoInput');
+  const titleInput = document.getElementById('titleInput');
+  const subtitleInput = document.getElementById('subtitleInput');
+  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+  const settingsMsg = document.getElementById('settingsMsg');
+  const saveCommonBtn = document.getElementById('saveCommonBtn');
+  const commonMsg = document.getElementById('commonMsg');
+
+  let pendingLogo = null;
+
+  function fileToBase64(file){
+    return new Promise((resolve,reject)=>{
+      const r = new FileReader();
+      r.onload = ()=>resolve(r.result);
+      r.onerror = ()=>reject(new Error('read failed'));
+      r.readAsDataURL(file);
+    });
+  }
+
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem(LS_SETTINGS);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+
+  function refreshSettingsUI(){
+    const s = loadSettings();
+    if(s.siteTitle) titleInput.value = s.siteTitle;
+    if(s.siteSubtitle) subtitleInput.value = s.siteSubtitle;
+    if(s.logo){ logoPreview.src = s.logo; logoPreview.style.display = 'block'; }
+    const c = s.common || {};
+    for(const key in COMMON_FIELDS){
+      document.getElementById(COMMON_FIELDS[key]).value = c[key] || '';
+    }
+  }
+
+  logoInput.addEventListener('change', async ()=>{
+    const file = logoInput.files[0];
+    if(!file) return;
+    if(file.size > 1.5*1024*1024){
+      settingsMsg.className = 'status-msg err';
+      settingsMsg.textContent = 'লোগো ছবিটি বড়, ১.৫MB এর কম আকারের ছবি ব্যবহার করুন।';
+      return;
+    }
+    pendingLogo = await fileToBase64(file);
+    logoPreview.src = pendingLogo;
+    logoPreview.style.display = 'block';
+  });
+
+  saveSettingsBtn.addEventListener('click', ()=>{
+    const s = loadSettings();
+    if(titleInput.value.trim()) s.siteTitle = titleInput.value.trim();
+    if(subtitleInput.value.trim()) s.siteSubtitle = subtitleInput.value.trim();
+    if(pendingLogo) s.logo = pendingLogo;
+    try{
+      localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+      settingsMsg.className = 'status-msg ok';
+      settingsMsg.textContent = 'সেটিংস সেভ হয়েছে।';
+    }catch(e){
+      settingsMsg.className = 'status-msg err';
+      settingsMsg.textContent = 'সেভ করা যায়নি।';
+    }
+  });
+
+  saveCommonBtn.addEventListener('click', ()=>{
+    const s = loadSettings();
+    const common = {};
+    for(const key in COMMON_FIELDS){
+      const v = document.getElementById(COMMON_FIELDS[key]).value.trim();
+      if(v) common[key] = v;
+    }
+    s.common = common;
+    try{
+      localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+      commonMsg.className = 'status-msg ok';
+      commonMsg.textContent = 'সাধারণ তথ্য সেভ হয়েছে।';
+    }catch(e){
+      commonMsg.className = 'status-msg err';
+      commonMsg.textContent = 'সেভ করা যায়নি।';
+    }
+  });
+
+  refreshSettingsUI();
+})();
+</script>
+
+</body>
+</html>
