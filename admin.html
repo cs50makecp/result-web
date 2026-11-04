@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — Result Publication System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --green:#128A3E;
+    --green-dark:#0D6E30;
+    --green-pale:#EAF6EE;
+    --bg:#F2F4F3;
+    --card:#FFFFFF;
+    --border:#DFE3E0;
+    --text:#1B2B22;
+    --muted:#5B6B60;
+    --danger:#C0392B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter','Hind Siliguri',sans-serif;
+    min-height:100vh;
+  }
+  .site-header{
+    background:var(--green);
+    color:#fff;
+    padding:16px 20px;
+  }
+  .site-header-inner{
+    max-width:760px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .site-header h1{margin:0; font-size:18px;}
+  .site-header a{color:#fff; font-size:13px; opacity:.9; text-decoration:none; border:1px solid rgba(255,255,255,.5); padding:6px 12px; border-radius:6px;}
+  .site-header a:hover{background:rgba(255,255,255,.12);}
+
+  main{max-width:760px; margin:0 auto; padding:28px 20px 60px;}
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:24px;
+    margin-bottom:22px;
+    box-shadow:0 2px 8px rgba(0,0,0,.04);
+  }
+  .panel h2{
+    font-size:16px;
+    margin:0 0 4px;
+    color:var(--green-dark);
+  }
+  .panel .sub{
+    font-size:13px;
+    color:var(--muted);
+    margin:0 0 18px;
+  }
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+  .field input[type="text"]{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    font-size:14px;
+    font-family:'Hind Siliguri',sans-serif;
+  }
+  .field input[type="file"]{font-size:13px;}
+  .field input:focus{outline:none; border-color:var(--green);}
+  .logo-preview{
+    width:60px; height:60px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    object-fit:cover;
+    display:none;
+    margin-bottom:10px;
+  }
+  .btn{
+    border:none;
+    padding:11px 22px;
+    border-radius:7px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:'Hind Siliguri',sans-serif;
+  }
+  .btn-primary{background:var(--green); color:#fff;}
+  .btn-primary:hover{background:var(--green-dark);}
+  .btn-outline{background:#fff; color:var(--green-dark); border:1px solid var(--green);}
+  .btn-outline:hover{background:var(--green-pale);}
+  .btn-danger{background:#fff; color:var(--danger); border:1px solid var(--danger);}
+  .btn-danger:hover{background:#FBEAE8;}
+  .status-msg{
+    margin-top:12px;
+    font-size:13px;
+    min-height:16px;
+  }
+  .status-msg.ok{color:var(--green-dark);}
+  .status-msg.err{color:var(--danger);}
+
+  .data-summary{
+    background:var(--green-pale);
+    border:1px solid var(--green);
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:13.5px;
+    margin-bottom:16px;
+  }
+  .data-summary b{color:var(--green-dark);}
+
+  .columns-note{
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:12.5px;
+    color:var(--muted);
+    line-height:1.7;
+    margin-top:14px;
+  }
+  .columns-note code{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:1px 5px;
+    font-size:12px;
+  }
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <h1>অ্যাডমিন প্যানেল</h1>
+    <a href="index.html">← মূল সাইটে ফিরে যান</a>
+  </div>
+</header>
+
+<main>
+
+  <div class="panel">
+    <h2>ওয়েবসাইট সেটিংস</h2>
+    <p class="sub">সাইটের নাম, সাব-টাইটেল ও লোগো এখান থেকে পরিবর্তন করুন।</p>
+    <img class="logo-preview" id="logoPreview">
+    <div class="field">
+      <label>লোগো</label>
+      <input type="file" id="logoInput" accept="image/*">
+    </div>
+    <div class="field">
+      <label>সাইটের প্রধান শিরোনাম</label>
+      <input type="text" id="titleInput" placeholder="WEB BASED RESULT PUBLICATION SYSTEM FOR EDUCATION BOARDS">
+    </div>
+    <div class="field">
+      <label>সাব-টাইটেল</label>
+      <input type="text" id="subtitleInput" placeholder="JSC/JDC/SSC/DAKHIL/HSC/ALIM AND EQUIVALENT EXAMINATION">
+    </div>
+    <button class="btn btn-primary" id="saveSettingsBtn">সেটিংস সেভ করুন</button>
+    <div class="status-msg" id="settingsMsg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>রেজাল্ট ডেটা — Excel/CSV আপলোড করে result-data.csv তৈরি করুন</h2>
+    <p class="sub">এই ওয়েবসাইট এখন ব্রাউজারে কিছু সংরক্ষণ করে না — মূল সাইট (<code>index.html</code>) সরাসরি <code>result-data.csv</code> ফাইল থেকে ডেটা পড়ে সার্চ দেখায়। এখানে Excel/CSV আপলোড দিলে সেটা যাচাই করে একটা সঠিক ফরম্যাটের <code>result-data.csv</code> তৈরি করে দেবে — সেটা ডাউনলোড করে <code>index.html</code>-এর পাশে রাখুন (আগেরটা replace করে দিন)।</p>
+
+    <div class="data-summary" id="dataSummary" style="display:none;"></div>
+
+    <div class="field">
+      <label>Excel/CSV ফাইল নির্বাচন করুন (.xlsx / .xls / .csv)</label>
+      <input type="file" id="excelInput" accept=".xlsx,.xls,.csv">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="uploadBtn">যাচাই করুন</button>
+      <button class="btn btn-outline" id="downloadBtn" disabled>result-data.csv ডাউনলোড করুন</button>
+      <button class="btn btn-outline" id="downloadTemplateBtn">ডেমো সহ Template ডাউনলোড করুন</button>
+    </div>
+    <div class="status-msg" id="uploadMsg"></div>
+
+    <div class="columns-note">
+      Excel-এ প্রতিটা <b>সাবজেক্টের জন্য একটা করে সারি (row)</b> থাকবে — একই Roll No বারবার লিখে সব সাবজেক্ট যোগ করুন। কলামের নাম (কাছাকাছি হলেও চলবে):<br>
+      <code>Roll No</code>, <code>Registration No</code>, <code>Name</code>, <code>Father's Name</code>,
+      <code>Mother's Name</code>, <code>Institute Name</code>, <code>Institute Code</code>, <code>Board</code>,
+      <code>Session</code>, <code>Class</code>, <code>Group</code>, <code>Department</code>, <code>Season</code>,
+      <code>Shift</code>, <code>Type</code>, <code>Gender</code>, <code>Date of Birth</code>, <code>Result</code>,
+      <code>Subject Code</code>, <code>Subject Name</code>, <code>Grade</code>, <code>Grade Point</code>, <code>Marks</code>
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function(){
+  const LS_SETTINGS = 'erp_settings_v1';
+
+  const COLUMN_HEADERS = ["Roll No","Registration No","Name","Father's Name","Mother's Name",
+    "Institute Name","Institute Code","Board","Session","Class","Group","Department","Season",
+    "Shift","Type","Gender","Date of Birth","Result","Subject Code","Subject Name","Grade","Grade Point","Marks"];
+
+  const DEMO_STUDENTS = {
+    "448729": {
+      roll:"448729", registration:"", name:"MD. KAMRUZZAMAN", fatherName:"MD. FIROZZAMAN", motherName:"MAKZINA BEGUM",
+      instituteName:"JOYGOBINDA HIGH SCHOOL", instituteCode:"", board:"DHAKA", session:"2008-09", class:"SSC",
+      group:"BUSINESS STUDIES", department:"", season:"2025", shift:"Day", type:"REGULAR", gender:"Male",
+      dob:"1994-06-09", result:"GPA=5.00",
+      subjects:[
+        {code:"101",name:"BANGLA",grade:"A",point:"4.00",marks:"85"},
+        {code:"107",name:"ENGLISH",grade:"A-",point:"3.50",marks:"78"},
+        {code:"109",name:"MATHEMATICS",grade:"A+",point:"5.00",marks:"95"},
+        {code:"127",name:"SCIENCE",grade:"A+",point:"5.00",marks:"93"},
+        {code:"111",name:"ISLAM AND MORAL EDUCATION",grade:"A+",point:"5.00",marks:"96"},
+        {code:"142",name:"INTRODUCTION TO BUSINESS",grade:"A+",point:"5.00",marks:"94"},
+        {code:"146",name:"ACCOUNTING",grade:"A+",point:"5.00",marks:"92"},
+        {code:"144",name:"COMMERCIAL GEOGRAPHY",grade:"A+",point:"5.00",marks:"90"},
+        {code:"134",name:"AGRICULTURE STUDIES",grade:"A+",point:"5.00",marks:"91"}
+      ]
+    },
+    "512345": {
+      roll:"512345", registration:"1234567890", name:"FATEMA AKTER", fatherName:"ABDUL KARIM", motherName:"RASHIDA BEGUM",
+      instituteName:"CITY COLLEGE", instituteCode:"5567", board:"DHAKA", session:"2023-24", class:"HSC",
+      group:"SCIENCE", department:"", season:"2025", shift:"Morning", type:"REGULAR", gender:"Female",
+      dob:"2006-03-14", result:"GPA=4.83",
+      subjects:[
+        {code:"101",name:"BANGLA",grade:"A",point:"4.00",marks:"82"},
+        {code:"107",name:"ENGLISH",grade:"A",point:"4.00",marks:"80"},
+        {code:"174",name:"PHYSICS",grade:"A+",point:"5.00",marks:"93"},
+        {code:"176",name:"CHEMISTRY",grade:"A+",point:"5.00",marks:"91"},
+        {code:"178",name:"BIOLOGY",grade:"A-",point:"3.50",marks:"77"},
+        {code:"265",name:"HIGHER MATHEMATICS",grade:"A+",point:"5.00",marks:"95"}
+      ]
+    }
+  };
+
+  const logoPreview = document.getElementById('logoPreview');
+  const logoInput = document.getElementById('logoInput');
+  const titleInput = document.getElementById('titleInput');
+  const subtitleInput = document.getElementById('subtitleInput');
+  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+  const settingsMsg = document.getElementById('settingsMsg');
+
+  const excelInput = document.getElementById('excelInput');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+  const uploadMsg = document.getElementById('uploadMsg');
+  const dataSummary = document.getElementById('dataSummary');
+
+  let pendingLogo = null;
+
+  function fileToBase64(file){
+    return new Promise((resolve,reject)=>{
+      const r = new FileReader();
+      r.onload = ()=>resolve(r.result);
+      r.onerror = ()=>reject(new Error('read failed'));
+      r.readAsDataURL(file);
+    });
+  }
+
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem(LS_SETTINGS);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+
+  function refreshSettingsUI(){
+    const s = loadSettings();
+    if(s.siteTitle) titleInput.value = s.siteTitle;
+    if(s.siteSubtitle) subtitleInput.value = s.siteSubtitle;
+    if(s.logo){ logoPreview.src = s.logo; logoPreview.style.display = 'block'; }
+  }
+
+  logoInput.addEventListener('change', async ()=>{
+    const file = logoInput.files[0];
+    if(!file) return;
+    if(file.size > 1.5*1024*1024){
+      settingsMsg.className = 'status-msg err';
+      settingsMsg.textContent = 'লোগো ছবিটি বড়, ১.৫MB এর কম আকারের ছবি ব্যবহার করুন।';
+      return;
+    }
+    pendingLogo = await fileToBase64(file);
+    logoPreview.src = pendingLogo;
+    logoPreview.style.display = 'block';
+  });
+
+  saveSettingsBtn.addEventListener('click', ()=>{
+    const s = loadSettings();
+    if(titleInput.value.trim()) s.siteTitle = titleInput.value.trim();
+    if(subtitleInput.value.trim()) s.siteSubtitle = subtitleInput.value.trim();
+    if(pendingLogo) s.logo = pendingLogo;
+    try{
+      localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+      settingsMsg.className = 'status-msg ok';
+      settingsMsg.textContent = 'সেটিংস সেভ হয়েছে।';
+    }catch(e){
+      settingsMsg.className = 'status-msg err';
+      settingsMsg.textContent = 'সেভ করা যায়নি।';
+    }
+  });
+
+  /* ---------------- Excel <-> data helpers ---------------- */
+
+  const ALIASES = {
+    roll: ['roll','rollno'],
+    registration: ['registration','regno','registrationno','registrationnumber'],
+    name: ['name','studentname','nameofstudent'],
+    fatherName: ['father','fathername'],
+    motherName: ['mother','mothername'],
+    instituteName: ['institute','institutename','nameofinstitute','school','college'],
+    instituteCode: ['institutecode','eiin'],
+    board: ['board'],
+    session: ['session'],
+    class: ['class','exam','examination'],
+    group: ['group'],
+    department: ['department','dept'],
+    season: ['season'],
+    shift: ['shift'],
+    type: ['type'],
+    gender: ['gender','sex'],
+    dob: ['dob','dateofbirth'],
+    result: ['result','gpa'],
+    subjectCode: ['subjectcode'],
+    subjectName: ['subjectname','subject'],
+    grade: ['grade'],
+    gradePoint: ['gradepoint','point'],
+    marks: ['marks','marksobtained','mark']
+  };
+
+  function normalize(h){
+    return String(h).toLowerCase().replace(/[^a-z0-9]/g,'');
+  }
+
+  function buildColumnMap(headerRow){
+    const map = {};
+    headerRow.forEach((h, idx)=>{
+      const norm = normalize(h);
+      for(const field in ALIASES){
+        if(ALIASES[field].includes(norm) && !(field in map)){
+          map[field] = idx;
+        }
+      }
+    });
+    return map;
+  }
+
+  function showSummary(students){
+    const rollCount = Object.keys(students).length;
+    let subjCount = 0;
+    Object.values(students).forEach(s => subjCount += (s.subjects||[]).length);
+    dataSummary.style.display = 'block';
+    dataSummary.innerHTML = '<b>'+rollCount+'</b> জন শিক্ষার্থী, মোট <b>'+subjCount+'</b> টি সাবজেক্ট এন্ট্রি বর্তমানে সংরক্ষিত আছে।';
+  }
+
+  let parsedStudents = null;
+
+  uploadBtn.addEventListener('click', ()=>{
+    const file = excelInput.files[0];
+    uploadMsg.textContent = '';
+    if(!file){
+      uploadMsg.className = 'status-msg err';
+      uploadMsg.textContent = 'দয়া করে একটি Excel/CSV ফাইল নির্বাচন করুন।';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const sheetName = wb.SheetNames[0];
+        const ws = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''});
+
+        if(!rows.length){
+          throw new Error('ফাইলে কোনো ডেটা পাওয়া যায়নি।');
+        }
+
+        const headerRow = rows[0];
+        const colMap = buildColumnMap(headerRow);
+
+        if(!('roll' in colMap)){
+          throw new Error('"Roll No" কলাম খুঁজে পাওয়া যায়নি। কলামের নাম যাচাই করুন।');
+        }
+
+        const students = {};
+        for(let i=1; i<rows.length; i++){
+          const row = rows[i];
+          if(!row || row.every(c => c === '' || c === undefined)) continue;
+
+          const get = (field)=> (field in colMap) ? String(row[colMap[field]] ?? '').trim() : '';
+
+          const roll = get('roll');
+          if(!roll) continue;
+
+          if(!students[roll]){
+            students[roll] = {
+              roll: roll,
+              registration: get('registration'),
+              name: get('name'),
+              fatherName: get('fatherName'),
+              motherName: get('motherName'),
+              instituteName: get('instituteName'),
+              instituteCode: get('instituteCode'),
+              board: get('board'),
+              session: get('session'),
+              class: get('class'),
+              group: get('group'),
+              department: get('department'),
+              season: get('season'),
+              shift: get('shift'),
+              type: get('type'),
+              gender: get('gender'),
+              dob: get('dob'),
+              result: get('result'),
+              subjects: []
+            };
+          }
+
+          const subjCode = get('subjectCode');
+          const subjName = get('subjectName');
+          if(subjCode || subjName){
+            students[roll].subjects.push({
+              code: subjCode,
+              name: subjName,
+              grade: get('grade'),
+              point: get('gradePoint'),
+              marks: get('marks')
+            });
+          }
+        }
+
+        if(!Object.keys(students).length){
+          throw new Error('কোনো বৈধ সারি পাওয়া যায়নি — Roll No কলাম খালি কিনা দেখুন।');
+        }
+
+        parsedStudents = students;
+        downloadBtn.disabled = false;
+        uploadMsg.className = 'status-msg ok';
+        uploadMsg.textContent = 'যাচাই সম্পন্ন! এখন "result-data.csv ডাউনলোড করুন" বাটনে ক্লিক করুন।';
+        showSummary(students);
+
+      }catch(err){
+        parsedStudents = null;
+        downloadBtn.disabled = true;
+        uploadMsg.className = 'status-msg err';
+        uploadMsg.textContent = 'ত্রুটি: ' + err.message;
+      }
+    };
+    reader.onerror = function(){
+      uploadMsg.className = 'status-msg err';
+      uploadMsg.textContent = 'ফাইল পড়া যায়নি।';
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  function studentsToRows(students){
+    const rows = [COLUMN_HEADERS];
+    Object.values(students).forEach(st=>{
+      const subjects = (st.subjects && st.subjects.length) ? st.subjects : [{}];
+      subjects.forEach(sub=>{
+        rows.push([
+          st.roll||'', st.registration||'', st.name||'', st.fatherName||'', st.motherName||'',
+          st.instituteName||'', st.instituteCode||'', st.board||'', st.session||'', st.class||'',
+          st.group||'', st.department||'', st.season||'', st.shift||'', st.type||'', st.gender||'',
+          st.dob||'', st.result||'', sub.code||'', sub.name||'', sub.grade||'', sub.point||'', sub.marks||''
+        ]);
+      });
+    });
+    return rows;
+  }
+
+  function csvEscape(val){
+    const s = String(val ?? '');
+    if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+    return s;
+  }
+
+  function rowsToCsv(rows){
+    return rows.map(row => row.map(csvEscape).join(',')).join('\r\n');
+  }
+
+  function downloadCsv(rows, filename){
+    const csv = rowsToCsv(rows);
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  downloadBtn.addEventListener('click', ()=>{
+    if(!parsedStudents){
+      uploadMsg.className = 'status-msg err';
+      uploadMsg.textContent = 'আগে একটি ফাইল আপলোড করে যাচাই করুন।';
+      return;
+    }
+    downloadCsv(studentsToRows(parsedStudents), 'result-data.csv');
+    uploadMsg.className = 'status-msg ok';
+    uploadMsg.textContent = 'ডাউনলোড হয়েছে — এই ফাইলটা index.html-এর পাশে রেখে আগেরটা replace করে দিন।';
+  });
+
+  downloadTemplateBtn.addEventListener('click', ()=>{
+    downloadCsv(studentsToRows(DEMO_STUDENTS), 'result-data-template.csv');
+  });
+
+  refreshSettingsUI();
+})();
+</script>
+
+</body>
+</html>
