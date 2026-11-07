@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Result Publication System</title>
+<title>Result Publication System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --green:#128A3E;
+    --green-dark:#0D6E30;
+    --green-pale:#EAF6EE;
+    --bg:#F2F4F3;
+    --card:#FFFFFF;
+    --border:#DFE3E0;
+    --text:#1B2B22;
+    --muted:#5B6B60;
+    --danger:#C0392B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter','Hind Siliguri',sans-serif;
+    min-height:100vh;
+  }
+
+  /* ---------------- top header ---------------- */
+  .site-header{
+    background:var(--green);
+    color:#fff;
+    padding:18px 20px;
+  }
+  .site-header-inner{
+    max-width:960px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    justify-content:center;
+    text-align:center;
+  }
+  .site-logo{
+    width:52px;
+    height:52px;
+    border-radius:8px;
+    object-fit:cover;
+    flex-shrink:0;
+    background:#fff;
+  }
+  .site-titles h1{
+    margin:0;
+    font-size:19px;
+    font-weight:800;
+    letter-spacing:.2px;
+  }
+  .site-titles p{
+    margin:4px 0 0;
+    font-size:13px;
+    opacity:.92;
+    font-weight:500;
+  }
+
+  main{max-width:960px; margin:0 auto; padding:28px 20px 60px;}
+
+  /* ---------------- search card ---------------- */
+  .search-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:24px;
+    margin-bottom:24px;
+    box-shadow:0 2px 8px rgba(0,0,0,.04);
+  }
+  .search-card h2{
+    font-size:17px;
+    margin:0 0 18px;
+    color:var(--green-dark);
+  }
+  .filters-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+  .field select, .field input{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    font-size:14px;
+    font-family:'Hind Siliguri',sans-serif;
+    background:#fff;
+    color:var(--text);
+  }
+  .field select:focus, .field input:focus{outline:none; border-color:var(--green);}
+  .search-inputs-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .search-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    border:none;
+    padding:11px 22px;
+    border-radius:7px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:'Hind Siliguri',sans-serif;
+  }
+  .btn-primary{background:var(--green); color:#fff;}
+  .btn-primary:hover{background:var(--green-dark);}
+  .btn-primary:disabled{background:var(--muted); cursor:not-allowed; opacity:.6;}
+  .load-note code{background:#fff; border:1px solid var(--border); border-radius:4px; padding:1px 5px; font-size:12px;}
+  .btn-outline{background:#fff; color:var(--green-dark); border:1px solid var(--green);}
+  .btn-outline:hover{background:var(--green-pale);}
+  .search-msg{
+    font-size:13px;
+    color:var(--danger);
+    margin-top:10px;
+    min-height:16px;
+  }
+  .no-data-note{
+    font-size:12.5px;
+    color:var(--muted);
+    background:var(--green-pale);
+    border:1px dashed var(--green);
+    padding:10px 12px;
+    border-radius:8px;
+    margin-bottom:16px;
+  }
+  .no-data-note a{color:var(--green-dark); font-weight:700;}
+  .load-note{
+    font-size:12.5px;
+    color:var(--muted);
+    background:var(--bg);
+    border:1px solid var(--border);
+    padding:10px 12px;
+    border-radius:8px;
+    margin-bottom:16px;
+  }
+  .load-note.err{
+    color:var(--danger);
+    background:#FDECEA;
+    border-color:var(--danger);
+  }
+
+  /* ---------------- matches list ---------------- */
+  .matches-list{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    margin-bottom:24px;
+  }
+  .matches-list .m-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:13px 18px;
+    border-bottom:1px solid var(--border);
+    cursor:pointer;
+  }
+  .matches-list .m-row:last-child{border-bottom:none;}
+  .matches-list .m-row:hover{background:var(--green-pale);}
+  .matches-list .m-name{font-weight:700; font-size:14.5px;}
+  .matches-list .m-meta{font-size:12.5px; color:var(--muted);}
+
+  /* ---------------- result area ---------------- */
+  #resultArea{display:none;}
+  .result-title-bar{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px 20px;
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .result-title-bar h2{
+    font-size:18px;
+    margin:0 0 14px;
+    color:var(--text);
+  }
+  .result-title-bar .action-buttons{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+  }
+
+  .info-card, .subject-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .info-header{
+    background:var(--green);
+    color:#fff;
+    padding:11px 18px;
+    font-weight:700;
+    font-size:14.5px;
+  }
+  .info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  .info-cell{
+    padding:11px 18px;
+    border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .info-cell .lbl{color:var(--muted); font-size:12px; margin:0 0 3px;}
+  .info-cell .val{font-weight:600; color:var(--text);}
+  @media (max-width:640px){
+    .info-grid{grid-template-columns:1fr;}
+  }
+
+  .subject-card h3{
+    text-align:center;
+    background:var(--green-pale);
+    color:var(--green-dark);
+    margin:0;
+    padding:12px;
+    font-size:15.5px;
+    border-bottom:1px solid var(--border);
+  }
+  table.subjects{
+    width:100%;
+    border-collapse:collapse;
+  }
+  table.subjects th{
+    background:var(--green);
+    color:#fff;
+    text-align:left;
+    padding:10px 14px;
+    font-size:13px;
+  }
+  table.subjects td{
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  table.subjects tr:last-child td{border-bottom:none;}
+
+  .no-result{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:40px 20px;
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+  }
+
+  footer{
+    text-align:center;
+    padding:20px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  footer a{color:var(--green-dark);}
+
+  @media print{
+    .site-header, .search-card, .matches-list, footer, .no-data-note, #printHide{display:none !important;}
+    body{background:#fff;}
+    main{padding:0; max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <img class="site-logo" id="siteLogo" style="display:none">
+    <div class="site-titles">
+      <h1 id="siteTitle">WEB BASED RESULT PUBLICATION SYSTEM FOR EDUCATION BOARDS</h1>
+      <p id="siteSubtitle">JSC/JDC/SSC/DAKHIL/HSC/ALIM AND EQUIVALENT EXAMINATION</p>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="search-card" id="searchCard">
+    <h2>রেজাল্ট খুঁজুন</h2>
+
+    <div class="no-data-note" id="noDataNote" style="display:none;">
+      এখনো কোনো রেজাল্ট ডেটা পাওয়া যায়নি — CSV ফাইলটি এই HTML ফাইলের পাশে (একই ফোল্ডারে) আছে কিনা এবং <code>index.html</code>-এর উপরে <code>DATA_FILE</code>-এ নামটি ঠিক আছে কিনা দেখুন।
+    </div>
+    <div class="load-note" id="loadNote">ডেটা লোড হচ্ছে...</div>
+
+    <div class="filters-grid">
+      <div class="field">
+        <label>Class</label>
+        <select id="fClass"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label>Group</label>
+        <select id="fGroup"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label>Department</label>
+        <select id="fDepartment"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label>Passing Year</label>
+        <select id="fSeason"><option value="">All</option></select>
+      </div>
+      <div class="field">
+        <label>Shift</label>
+        <select id="fShift"><option value="">All</option></select>
+      </div>
+    </div>
+
+    <div class="search-inputs-row">
+      <div class="field">
+        <label>Roll No</label>
+        <input type="text" id="qRoll" placeholder="যেমন: 448729" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="qName" placeholder="শিক্ষার্থীর নাম">
+      </div>
+    </div>
+
+    <div class="search-actions">
+      <button class="btn btn-primary" id="searchBtn">Search</button>
+      <button class="btn btn-outline" id="resetBtn">Reset</button>
+    </div>
+    <div class="search-msg" id="searchMsg"></div>
+  </div>
+
+  <div class="matches-list" id="matchesList" style="display:none;"></div>
+
+  <div id="resultArea">
+    <div class="result-title-bar">
+      <h2 id="resultTitle"></h2>
+      <div class="action-buttons" id="printHide">
+        <button class="btn btn-outline" id="searchAgainBtn">Search Again</button>
+        <button class="btn btn-primary" id="printBtn">Print</button>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-header">Student Information Summary</div>
+      <div class="info-grid" id="infoGrid"></div>
+    </div>
+
+    <div class="subject-card">
+      <h3>Subject-wise Grade/Marks</h3>
+      <table class="subjects">
+        <thead>
+          <tr><th>Subject Code</th><th>Subject Name</th><th>Grade</th><th>Grade Point</th><th>Marks</th></tr>
+        </thead>
+        <tbody id="subjectsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="no-result" id="noResult" style="display:none;">কোনো রেজাল্ট পাওয়া যায়নি — Roll/Name অথবা ফিল্টার আবার যাচাই করুন।</div>
+
+</main>
+
+<footer>Result Publication System</footer>
+
+<script>
+(function(){
+  /* =====================================================
+     ডেটা ফাইলের নাম — CSV ফাইলের নাম এখানে বদলে দিন।
+     ফাইলটি অবশ্যই index.html-এর একই ফোল্ডারে রাখতে হবে।
+     ===================================================== */
+  const DATA_FILE = 'result-data.csv';
+
+  const LS_SETTINGS = 'erp_settings_v1';
+
+  const ALIASES = {
+    roll: ['roll','rollno'],
+    registration: ['registration','regno','registrationno','registrationnumber'],
+    name: ['name','studentname','nameofstudent'],
+    fatherName: ['father','fathername'],
+    motherName: ['mother','mothername'],
+    instituteName: ['institute','institutename','nameofinstitute','school','college'],
+    instituteCode: ['institutecode','eiin'],
+    board: ['board'],
+    session: ['session'],
+    class: ['class','exam','examination'],
+    group: ['group'],
+    department: ['department','dept'],
+    season: ['season'],
+    shift: ['shift'],
+    type: ['type'],
+    gender: ['gender','sex'],
+    dob: ['dob','dateofbirth'],
+    result: ['result','gpa'],
+    subjectCode: ['subjectcode'],
+    subjectName: ['subjectname','subject'],
+    grade: ['grade'],
+    gradePoint: ['gradepoint','point'],
+    marks: ['marks','marksobtained','mark']
+  };
+
+  function normalizeHeader(h){ return String(h).toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+  function buildColumnMap(headerRow){
+    const map = {};
+    headerRow.forEach((h, idx)=>{
+      const norm = normalizeHeader(h);
+      for(const field in ALIASES){
+        if(ALIASES[field].includes(norm) && !(field in map)) map[field] = idx;
+      }
+    });
+    return map;
+  }
+
+  function rowsToStudents(rows){
+    if(!rows.length) return {};
+    const headerRow = rows[0];
+    const colMap = buildColumnMap(headerRow);
+    if(!('roll' in colMap)) throw new Error('CSV ফাইলে "Roll No" কলাম পাওয়া যায়নি।');
+
+    // অ্যাডমিন প্যানেল থেকে সেট করা "সাধারণ তথ্য" — CSV-র ঘর ফাঁকা থাকলে এগুলো বসবে
+    const common = (loadSettings().common) || {};
+
+    const students = {};
+    for(let i=1; i<rows.length; i++){
+      const row = rows[i];
+      if(!row || row.every(c => c === '' || c === undefined || c === null)) continue;
+      const get = (field)=> (field in colMap) ? String(row[colMap[field]] ?? '').trim() : '';
+      const getC = (field)=> get(field) || common[field] || '';
+      const roll = get('roll');
+      if(!roll) continue;
+
+      if(!students[roll]){
+        students[roll] = {
+          roll: roll, registration: get('registration'), name: get('name'),
+          fatherName: get('fatherName'), motherName: get('motherName'),
+          instituteName: get('instituteName'), instituteCode: get('instituteCode'),
+          board: getC('board'), session: get('session'), class: getC('class'),
+          group: getC('group'), department: getC('department'), season: getC('season'),
+          shift: getC('shift'), type: get('type'), gender: get('gender'),
+          dob: get('dob'), result: get('result'), subjects: []
+        };
+      }
+      const subjCode = get('subjectCode');
+      const subjName = get('subjectName');
+      if(subjCode || subjName){
+        students[roll].subjects.push({
+          code: subjCode, name: subjName, grade: get('grade'),
+          point: get('gradePoint'), marks: get('marks')
+        });
+      }
+    }
+    return students;
+  }
+
+  let STUDENTS = {};
+
+  const siteLogo = document.getElementById('siteLogo');
+  const siteTitle = document.getElementById('siteTitle');
+  const siteSubtitle = document.getElementById('siteSubtitle');
+
+  const noDataNote = document.getElementById('noDataNote');
+  const fClass = document.getElementById('fClass');
+  const fGroup = document.getElementById('fGroup');
+  const fDepartment = document.getElementById('fDepartment');
+  const fSeason = document.getElementById('fSeason');
+  const fShift = document.getElementById('fShift');
+  const qRoll = document.getElementById('qRoll');
+  const qName = document.getElementById('qName');
+  const searchBtn = document.getElementById('searchBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const searchMsg = document.getElementById('searchMsg');
+
+  const matchesList = document.getElementById('matchesList');
+  const resultArea = document.getElementById('resultArea');
+  const resultTitle = document.getElementById('resultTitle');
+  const infoGrid = document.getElementById('infoGrid');
+  const subjectsBody = document.getElementById('subjectsBody');
+  const noResult = document.getElementById('noResult');
+  const searchCard = document.getElementById('searchCard');
+  const searchAgainBtn = document.getElementById('searchAgainBtn');
+  const printBtn = document.getElementById('printBtn');
+
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem(LS_SETTINGS);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function applySettings(){
+    const s = loadSettings();
+    if(s.siteTitle){ siteTitle.textContent = s.siteTitle; document.title = s.siteTitle; }
+    if(s.siteSubtitle){ siteSubtitle.textContent = s.siteSubtitle; }
+    if(s.logo){
+      siteLogo.src = s.logo;
+      siteLogo.style.display = 'block';
+    }
+  }
+
+  const loadNote = document.getElementById('loadNote');
+
+  function fetchAndLoadData(){
+    return fetch(DATA_FILE, {cache:'no-store'})
+      .then(res=>{
+        if(!res.ok) throw new Error('ফাইল পাওয়া যায়নি (HTTP '+res.status+')');
+        return res.text();
+      })
+      .then(text=>{
+        const parsed = Papa.parse(text.replace(/^\uFEFF/, '').trim(), {skipEmptyLines:true});
+        if(parsed.errors && parsed.errors.length){
+          console.warn('CSV parse warnings:', parsed.errors);
+        }
+        STUDENTS = rowsToStudents(parsed.data);
+        loadNote.style.display = 'none';
+        searchBtn.disabled = false;
+      })
+      .catch(err=>{
+        STUDENTS = {};
+        loadNote.className = 'load-note err';
+        loadNote.innerHTML =
+          '<b>ডেটা লোড করা যায়নি:</b> ' + escapeHtml(err.message) + '<br>' +
+          'সম্ভাব্য কারণ: <code>' + escapeHtml(DATA_FILE) + '</code> ফাইলটি <code>index.html</code>-এর পাশে নেই, অথবা ফাইলটি সরাসরি ডাবল-ক্লিক করে (file://) খোলা হয়েছে — ব্রাউজার নিরাপত্তার কারণে file:// থেকে অন্য ফাইল পড়তে দেয় না। '+
+          'এই সাইটটি অবশ্যই একটি লোকাল সার্ভার দিয়ে রান করতে হবে (যেমন VS Code-এর "Live Server" extension, অথবা টার্মিনালে <code>python -m http.server</code> চালিয়ে ব্রাউজারে <code>http://localhost:8000</code> খুলুন)।';
+      });
+  }
+
+  function uniqueValues(students, field){
+    const set = new Set();
+    Object.values(students).forEach(st=>{
+      if(st[field]) set.add(st[field]);
+    });
+    return Array.from(set).sort();
+  }
+
+  function fillSelect(select, values){
+    const current = select.value;
+    select.innerHTML = '<option value="">All</option>' +
+      values.map(v=>'<option value="'+escapeAttr(v)+'">'+escapeHtml(v)+'</option>').join('');
+    select.value = current;
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = String(str);
+    return d.innerHTML;
+  }
+  function escapeAttr(str){ return escapeHtml(str).replace(/"/g,'&quot;'); }
+
+  function populateFilters(){
+    const count = Object.keys(STUDENTS).length;
+    noDataNote.style.display = count ? 'none' : 'block';
+    fillSelect(fClass, uniqueValues(STUDENTS,'class'));
+    fillSelect(fGroup, uniqueValues(STUDENTS,'group'));
+    fillSelect(fDepartment, uniqueValues(STUDENTS,'department'));
+    fillSelect(fSeason, uniqueValues(STUDENTS,'season'));
+    fillSelect(fShift, uniqueValues(STUDENTS,'shift'));
+  }
+
+  function matchesFilters(st){
+    if(fClass.value && st.class !== fClass.value) return false;
+    if(fGroup.value && st.group !== fGroup.value) return false;
+    if(fDepartment.value && st.department !== fDepartment.value) return false;
+    if(fSeason.value && st.season !== fSeason.value) return false;
+    if(fShift.value && st.shift !== fShift.value) return false;
+    return true;
+  }
+
+  function resetAll(){
+    qRoll.value = '';
+    qName.value = '';
+    fClass.value = ''; fGroup.value=''; fDepartment.value=''; fSeason.value=''; fShift.value='';
+    searchMsg.textContent = '';
+    matchesList.style.display = 'none';
+    resultArea.style.display = 'none';
+    noResult.style.display = 'none';
+    searchCard.style.display = 'block';
+  }
+
+  function showList(list){
+    matchesList.innerHTML = list.map(st=>
+      '<div class="m-row" data-roll="'+escapeAttr(st.roll)+'">' +
+        '<div><div class="m-name">'+escapeHtml(st.name||'(No name)')+'</div>' +
+        '<div class="m-meta">Roll: '+escapeHtml(st.roll)+' · '+escapeHtml(st.instituteName||'')+'</div></div>' +
+        '<div class="m-meta">'+escapeHtml(st.class||'')+' '+escapeHtml(st.session||'')+'</div>' +
+      '</div>'
+    ).join('');
+    matchesList.style.display = 'block';
+    matchesList.querySelectorAll('.m-row').forEach(row=>{
+      row.addEventListener('click', ()=> showDetail(row.getAttribute('data-roll')));
+    });
+  }
+
+  function infoCell(label, value){
+    return '<div class="info-cell"><p class="lbl">'+label+'</p><p class="val">'+escapeHtml(value || 'N/A')+'</p></div>';
+  }
+
+  function showDetail(roll){
+    const st = STUDENTS[roll];
+    if(!st) return;
+
+    matchesList.style.display = 'none';
+    searchCard.style.display = 'none';
+    noResult.style.display = 'none';
+
+    resultTitle.textContent = 'Result of ' + (st.class || 'SSC') + ' or Equivalent Examination - ' + (st.season || '');
+
+    infoGrid.innerHTML =
+      infoCell('Roll No', st.roll) + infoCell('Registration No', st.registration || 'NOT SHOWN') +
+      infoCell('Name of Student', st.name) + infoCell("Father's Name", st.fatherName) +
+      infoCell("Mother's Name", st.motherName) + infoCell('Board', st.board) +
+      infoCell('Session', st.session) + infoCell('Group', st.group) +
+      infoCell('Type', st.type) + infoCell('Gender', st.gender) +
+      infoCell('Result', st.result) + infoCell('Date of Birth', st.dob) +
+      infoCell('Name of Institute', st.instituteName) + infoCell('Institute Code', st.instituteCode);
+
+    subjectsBody.innerHTML = (st.subjects || []).map(sub=>
+      '<tr><td>'+escapeHtml(sub.code)+'</td><td>'+escapeHtml(sub.name)+'</td><td>'+escapeHtml(sub.grade)+'</td><td>'+escapeHtml(sub.point)+'</td><td>'+escapeHtml(sub.marks)+'</td></tr>'
+    ).join('');
+
+    resultArea.style.display = 'block';
+  }
+
+  function doSearch(){
+    searchMsg.textContent = '';
+    const roll = qRoll.value.trim();
+    const name = qName.value.trim().toLowerCase();
+
+    if(!roll && !name){
+      searchMsg.textContent = 'দয়া করে Roll No অথবা Name দিয়ে সার্চ করুন।';
+      return;
+    }
+
+    let list = Object.values(STUDENTS).filter(matchesFilters);
+
+    if(roll){
+      list = list.filter(st => String(st.roll).trim() === roll);
+    } else if(name){
+      list = list.filter(st => (st.name||'').toLowerCase().includes(name));
+    }
+
+    matchesList.style.display = 'none';
+    resultArea.style.display = 'none';
+    noResult.style.display = 'none';
+
+    if(list.length === 0){
+      noResult.style.display = 'block';
+    } else if(list.length === 1){
+      showDetail(list[0].roll);
+    } else {
+      showList(list);
+    }
+  }
+
+  searchBtn.addEventListener('click', doSearch);
+  resetBtn.addEventListener('click', resetAll);
+  searchAgainBtn.addEventListener('click', resetAll);
+  printBtn.addEventListener('click', ()=> window.print());
+
+  [qRoll, qName].forEach(inp=>{
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(); });
+  });
+
+  applySettings();
+  searchBtn.disabled = true;
+  fetchAndLoadData().then(populateFilters);
+})();
+</script>
+
+</body>
+</html>
